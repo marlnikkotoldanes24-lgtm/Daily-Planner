@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#6c63ff">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Planner</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    <script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+  }
+</script>
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #c3cfe2, #f5f7fa);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: #ffffffcc;
+      backdrop-filter: blur(10px);
+      max-width: 800px;
+      width: 100%;
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 700px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .contai
+      background: #ffffffcc;
+      backdrop-filter: blur(10px);
+      max-width: 420px;
+      width: 100%;
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    }
+    h1 {
+      text-align: center;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    h2 {
+      font-size: 1.1rem;
+      margin-top: 25px;
+      margin-bottom: 10px;
+      color: #555;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      border-radius: 12px;
+      border: none;
+      font-family: inherit;
+    }
+    input {
+      background: #f0f3f7;
+    }
+    button {
+      background: #6c63ff;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover { background: #574fd6; }
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 10px;
+    }
+    li {
+      background: #f0f3f7;
+      padding: 10px 14px;
+      border-radius: 12px;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+    }
+    .result {
+      margin-top: 20px;
+      background: #eef7ee;
+      padding: 15px;
+      border-radius: 15px;
+      font-size: 0.9rem;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 0.75rem;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Daily Planner</h1>
+
+    <div class="grid">
+      <div>
+        <h2>To-Do List</h2>
+        <input type="text" id="taskInput" placeholder="What will you do today?" />
+        <button onclick="addTask()">Add Task</button>
+        <ul id="taskList"></ul>
+      </div>
+
+      <div>
+        <h2>Expenses</h2>
+        <input type="number" id="allowance" placeholder="Today's allowance" />
+        <input type="number" id="expenseInput" placeholder="Add an expense" />
+        <button onclick="addExpense()">Add Expense</button>
+        <ul id="expenseList"></ul>
+        <button onclick="calculate()">Calculate</button>
+      </div>
+    </div>
+
+    <div class="result" id="output"></div>
+    <div class="footer">Simple • Clean • Student-friendly</div>
+  </div>
+
+  <script>
+    let tasks = [];
+    let expenses = [];
+
+    function addTask() {
+      const input = document.getElementById('taskInput');
+      if (input.value.trim() === '') return;
+      if (tasks.length >= 50) return alert('Max of 50 tasks only');
+      tasks.push(input.value);
+      input.value = '';
+      renderTasks();
+    }
+
+    function renderTasks() {
+      const list = document.getElementById('taskList');
+      list.innerHTML = '';
+      tasks.forEach((task, i) => {
+        list.innerHTML += `<li>${i + 1}. ${task}</li>`;
+      });
+    }
+
+    function addExpense() {
+      const expInput = document.getElementById('expenseInput');
+      if (expInput.value === '') return;
+      expenses.push(Number(expInput.value));
+      expInput.value = '';
+      renderExpenses();
+    }
+
+    function renderExpenses() {
+      const list = document.getElementById('expenseList');
+      list.innerHTML = '';
+      expenses.forEach((exp, i) => {
+        list.innerHTML += `
+          <li>
+            Expense ${i + 1}: ₱${exp}
+            <button onclick="editExpense(${i})" style="float:right;background:#ffb703;color:#000;border:none;border-radius:8px;padding:4px 8px;cursor:pointer;">Edit</button>
+          </li>`;
+      });
+    }
+
+    function editExpense(index) {
+      const newValue = prompt('Edit expense amount:', expenses[index]);
+      if (newValue === null || newValue === '' || isNaN(newValue)) return;
+      expenses[index] = Number(newValue);
+      renderExpenses();
+    }
+
+    function calculate() {
+      const allowance = Number(document.getElementById('allowance').value);
+      const totalExp = expenses.reduce((a, b) => a + b, 0);
+      const finalBal = allowance - totalExp;
+
+      document.getElementById('output').innerHTML = `
+        <p><strong>Total expenses today:</strong> ${totalExp}</p>
+        <p><strong>Remaining balance:</strong> ${finalBal}</p>
+        <p><strong>Weekly expenses:</strong> ${totalExp * 7}</p>
+        <p><strong>Weekly balance:</strong> ${finalBal * 7}</p>
+        <p><strong>Monthly balance:</strong> ${finalBal * 27}</p>
+      `;
+    }
+  </script>
+</body>
+</html>
